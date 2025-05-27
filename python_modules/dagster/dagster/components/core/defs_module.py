@@ -50,7 +50,7 @@ class ComponentFileModel(BaseModel):
 
     type: str
     attributes: Optional[Mapping[str, Any]] = None
-    scope: Optional[str] = None
+    template_vars_module: Optional[str] = None
     requirements: Optional[ComponentRequirementsModel] = None
 
 
@@ -296,22 +296,22 @@ def load_pythonic_component(context: ComponentLoadContext) -> Component:
 def context_with_injected_scope(
     context: ComponentLoadContext,
     component_cls: type[Component],
-    injectables_module: Optional[str],
+    template_vars_module: Optional[str],
 ) -> ComponentLoadContext:
     context = context.with_rendering_scope(
         component_cls.get_additional_scope(),
     )
 
-    if not injectables_module:
+    if not template_vars_module:
         return context
 
-    absolute_injectables_module = (
-        f"{context.defs_relative_module_name(context.path)}{injectables_module}"
-        if injectables_module.startswith(".")
-        else injectables_module
+    absolute_template_vars_module = (
+        f"{context.defs_relative_module_name(context.path)}{template_vars_module}"
+        if template_vars_module.startswith(".")
+        else template_vars_module
     )
 
-    module = importlib.import_module(absolute_injectables_module)
+    module = importlib.import_module(absolute_template_vars_module)
 
     template_var_fns = find_template_vars_in_module(module)
 
@@ -349,7 +349,9 @@ def load_yaml_component_from_path(context: ComponentLoadContext, component_def_p
                 f"Component type {type_str} is of type {type(obj)}, but must be a subclass of dagster.Component"
             )
 
-        context = context_with_injected_scope(context, obj, component_file_model.scope)
+        context = context_with_injected_scope(
+            context, obj, component_file_model.template_vars_module
+        )
 
         context = context.with_source_position_tree(
             source_tree.source_position_tree,
