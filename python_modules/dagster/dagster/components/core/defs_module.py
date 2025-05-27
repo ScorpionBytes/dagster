@@ -29,7 +29,7 @@ from dagster._utils.pydantic_yaml import (
 )
 from dagster.components.component.component import Component
 from dagster.components.component.component_loader import is_component_loader
-from dagster.components.component.scope import Scope, find_scope_fn
+from dagster.components.component.injectables import find_injectables
 from dagster.components.core.context import ComponentLoadContext, use_component_load_context
 from dagster.components.core.package_entry import load_package_object
 from dagster.components.definitions import LazyDefinitions
@@ -296,34 +296,33 @@ def load_pythonic_component(context: ComponentLoadContext) -> Component:
 def context_with_injected_scope(
     context: ComponentLoadContext,
     component_cls: type[Component],
-    scope_module: Optional[str],
+    injectables_module: Optional[str],
 ) -> ComponentLoadContext:
     context = context.with_rendering_scope(
         component_cls.get_additional_scope(),
     )
 
-    if not scope_module:
+    if not injectables_module:
         return context
 
-    absolute_scope_module = (
-        f"{context.defs_relative_module_name(context.path)}{scope_module}"
-        if scope_module.startswith(".")
-        else scope_module
+    absolute_injectables_module = (
+        f"{context.defs_relative_module_name(context.path)}{injectables_module}"
+        if injectables_module.startswith(".")
+        else injectables_module
     )
 
-    module = importlib.import_module(absolute_scope_module)
+    module = importlib.import_module(absolute_injectables_module)
 
-    scope_fn = find_scope_fn(module)
-    if not scope_fn:
-        # TODO: raise error?
-        return context
+    injectables = find_injectables(module)
 
-    scope = scope_fn(context)
-    check.invariant(
-        isinstance(scope, Scope),
-        "Scope function must return a Scope object",
+    # TODO error if injectables are not found
+
+    return context.with_rendering_scope(
+        {
+            **injectables.template_udfs,
+            **{name: tv() for name, tv in injectables.template_vars.items()},
+        },
     )
-    return context.with_rendering_scope(scope.scope)
 
 
 def load_yaml_component(context: ComponentLoadContext) -> Component:

@@ -65,7 +65,7 @@ def test_basic_injected_scope_var():
     load_context, component = load_context_and_component_for_test(
         ComponentWithInjectedScope,
         {"value": "{{ foo }}"},
-        scope_module="dagster_tests.components_tests.scope_tests.scope",
+        injectables_module="dagster_tests.components_tests.template_scope_tests.injectables",
     )
 
     assert component.value == "value_for_foo"
@@ -75,7 +75,7 @@ def test_basic_scope_udf_no_args():
     load_context, component = load_context_and_component_for_test(
         ComponentWithInjectedScope,
         {"value": "{{ a_udf() }}"},
-        scope_module="dagster_tests.components_tests.scope_tests.scope",
+        injectables_module="dagster_tests.components_tests.template_scope_tests.injectables",
     )
 
     assert component.value == "a_udf_value"
@@ -85,7 +85,7 @@ def test_basic_scope_udf_with_args():
     load_context, component = load_context_and_component_for_test(
         ComponentWithInjectedScope,
         {"value": "{{ a_udf_with_args('1') }}"},
-        scope_module="dagster_tests.components_tests.scope_tests.scope",
+        injectables_module="dagster_tests.components_tests.template_scope_tests.injectables",
     )
 
     assert component.value == "a_udf_value_1"
