@@ -29,7 +29,7 @@ from dagster._utils.pydantic_yaml import (
 )
 from dagster.components.component.component import Component
 from dagster.components.component.component_loader import is_component_loader
-from dagster.components.component.injectables import find_injectables
+from dagster.components.component.template_vars import find_template_vars_in_module
 from dagster.components.core.context import ComponentLoadContext, use_component_load_context
 from dagster.components.core.package_entry import load_package_object
 from dagster.components.definitions import LazyDefinitions
@@ -313,14 +313,13 @@ def context_with_injected_scope(
 
     module = importlib.import_module(absolute_injectables_module)
 
-    injectables = find_injectables(module)
+    template_var_fns = find_template_vars_in_module(module)
 
-    # TODO error if injectables are not found
+    # TODO error if injectables are not found?
 
     return context.with_rendering_scope(
         {
-            **injectables.template_udfs,
-            **{name: tv() for name, tv in injectables.template_vars.items()},
+            **{name: tv(context) for name, tv in template_var_fns.items()},
         },
     )
 
