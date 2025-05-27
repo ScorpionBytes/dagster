@@ -91,7 +91,7 @@ class Resolver:
             fn (Callable[[ResolutionContext, Any], Any]): The custom resolution function.
             model_field_name (Optional[str]): Override the name of the field on the
                 generated pydantic model. This is the name that to be used in yaml.
-            model_field_type (Optional(type)): Override the type of this field on the
+            model_field_type (Optional[type]): Override the type of this field on the
                 generated pydantic model. This will define the schema used in yaml.
             description (Optional[str]): Description to add to the generated pydantic model.
                 This will show up in documentation and IDEs during yaml editing.
