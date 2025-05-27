@@ -37,5 +37,12 @@ setup(
     install_requires=[
         f"dagster-dg{pin}",
     ],
+    extras_require={
+        "test": [
+            "pytest",
+            "buildkite-test-collector",
+            "flaky",
+        ],
+    },
     zip_safe=False,
 )
