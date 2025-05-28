@@ -521,7 +521,7 @@ class DgContext:
     # ########################
 
     # It is possible for a single package to define multiple entry points under the
-    # `dagster_dg.plugin` entry point group. At present, `dg` only cares about the first one, which
+    # `dagster_dg_cli.plugin` entry point group. At present, `dg` only cares about the first one, which
     # it uses for all component type scaffolding operations.
 
     @property
@@ -551,10 +551,10 @@ class DgContext:
 
         if self.pyproject_toml_path.exists():
             toml = tomlkit.parse(self.pyproject_toml_path.read_text())
-            if has_toml_node(toml, ("project", "entry-points", "dagster_dg.plugin")):
+            if has_toml_node(toml, ("project", "entry-points", "dagster_dg_cli.plugin")):
                 return get_toml_node(
                     toml,
-                    ("project", "entry-points", "dagster_dg.plugin"),
+                    ("project", "entry-points", "dagster_dg_cli.plugin"),
                     (tomlkit.items.Table, tomlkit.items.InlineTable),
                 ).unwrap()
             # Keeping for a few weeks (as of 2025-04-09) for backwards compatibility. Should be removed
@@ -576,7 +576,9 @@ class DgContext:
                 warnings.simplefilter("ignore", category=SetuptoolsDeprecationWarning)
                 config = read_configuration("setup.cfg")
             entry_points = config.get("options", {}).get("entry_points", {})
-            if "dagster_dg.plugin" in entry_points:
+            if "dagster_dg_cli.plugin" in entry_points:
+                raw_plugin_entry_points = entry_points["dagster_dg_cli.plugin"]
+            elif "dagster_dg.plugin" in entry_points:
                 raw_plugin_entry_points = entry_points["dagster_dg.plugin"]
             elif "dagster_dg.library" in entry_points:
                 raw_plugin_entry_points = entry_points["dagster_dg.library"]
@@ -748,7 +750,7 @@ def _validate_plugin_entry_point(context: DgContext) -> None:
             Found deprecated `dagster_dg.library` entry point group in:
                 {context.pyproject_toml_path}
 
-            Please update the group name to `dagster_dg.plugin`. Package reinstallation is required
+            Please update the group name to `dagster_dg_cli.plugin`. Package reinstallation is required
             because entry points are registered at install time. Reinstall your package to your
             environment using:
 
